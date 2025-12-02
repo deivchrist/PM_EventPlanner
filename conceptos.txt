@@ -1,0 +1,157 @@
+CONCEPTOS - EventPlanner
+Examen Final - Aplicación Móvil
+
+===========================================
+1. ¿QUÉ ES MVVM?
+===========================================
+
+MVVM (Model-View-ViewModel) es un patrón de arquitectura de software que separa la lógica de negocio de la interfaz de usuario. En nuestra aplicación EventPlanner:
+
+- MODEL (Modelo): Representa los datos y la lógica de negocio. En nuestro caso:
+  * Event.kt: Define la estructura de datos de un evento
+  * EventRepository.kt: Maneja las operaciones con Firestore (CRUD)
+  * AuthRepository.kt: Maneja la autenticación con Firebase Auth
+
+- VIEW (Vista): Es la interfaz de usuario. En nuestro caso:
+  * LoginScreen.kt, RegisterScreen.kt: Pantallas de autenticación
+  * EventListScreen.kt: Lista de eventos
+  * CreateEventScreen.kt, EditEventScreen.kt: Formularios de eventos
+  * Todas implementadas con Jetpack Compose
+
+- VIEWMODEL: Actúa como intermediario entre la View y el Model:
+  * AuthViewModel.kt: Maneja el estado de autenticación
+  * EventViewModel.kt: Maneja el estado de los eventos
+  * Expone datos observables (StateFlow) que la View puede observar
+  * No conoce directamente la View, solo expone datos y estados
+
+VENTAJAS:
+- Separación de responsabilidades
+- Fácil de testear
+- Reutilización de código
+- Mantenibilidad
+
+===========================================
+2. ¿QUÉ ES FIREBASE AUTH?
+===========================================
+
+Firebase Authentication es un servicio de Google que proporciona autenticación de usuarios de forma segura y fácil de implementar.
+
+En nuestra aplicación:
+- Permite a los usuarios registrarse con email y contraseña
+- Permite iniciar sesión con credenciales válidas
+- Gestiona de forma segura las contraseñas (encriptadas)
+- Proporciona un ID único (UID) para cada usuario
+
+IMPLEMENTACIÓN:
+- AuthRepository.kt: Contiene métodos login(), register(), logout()
+- AuthViewModel.kt: Maneja la lógica de negocio y validaciones
+- LoginScreen.kt y RegisterScreen.kt: Interfaz de usuario
+
+BENEFICIOS:
+- No necesitamos gestionar servidores de autenticación
+- Seguridad implementada por Google
+- Escalable automáticamente
+- Integración sencilla con otros servicios de Firebase
+
+===========================================
+3. ¿QUÉ ES FIRESTORE?
+===========================================
+
+Firestore es una base de datos NoSQL en la nube de Firebase que almacena datos en documentos organizados en colecciones.
+
+ESTRUCTURA EN NUESTRA APP:
+- Colección: "events"
+- Documentos: Cada evento es un documento con:
+  * id: ID único del documento
+  * userId: ID del usuario que creó el evento
+  * title: Título del evento
+  * date: Fecha del evento
+  * description: Descripción del evento
+
+CARACTERÍSTICAS:
+- Tiempo real: Los cambios se sincronizan automáticamente
+- Escalable: Maneja millones de documentos
+- Seguro: Reglas de seguridad configurables
+- Offline: Funciona sin conexión (sincroniza después)
+
+IMPLEMENTACIÓN:
+- EventRepository.kt: Usa snapshot listeners para lectura en tiempo real
+- getEventsByUser(): Obtiene eventos del usuario actual en tiempo real
+- createEvent(), updateEvent(), deleteEvent(): Operaciones CRUD
+
+===========================================
+4. ¿QUÉ ES JETPACK COMPOSE?
+===========================================
+
+Jetpack Compose es el toolkit moderno de Android para construir interfaces de usuario nativas usando Kotlin de forma declarativa.
+
+CARACTERÍSTICAS:
+- Declarativo: Describes cómo debe verse la UI, no cómo construirla
+- Funciones Composable: Funciones Kotlin que retornan UI
+- Recompilación inteligente: Solo actualiza lo que cambió
+- Integración con Material Design 3
+
+EN NUESTRA APP:
+- Todas las pantallas están construidas con Compose
+- Uso de Material3 para componentes modernos
+- Navegación con Navigation Compose
+- StateFlow para observar cambios de estado
+
+EJEMPLO:
+@Composable
+fun LoginScreen() {
+    var email by remember { mutableStateOf("") }
+    Column {
+        TextField(value = email, onValueChange = { email = it })
+        Button(onClick = { /* login */ })
+    }
+}
+
+VENTAJAS:
+- Menos código que XML
+- Type-safe
+- Preview en tiempo real
+- Fácil de mantener
+
+===========================================
+5. ¿QUÉ ES UN CRUD?
+===========================================
+
+CRUD es un acrónimo que significa Create (Crear), Read (Leer), Update (Actualizar), Delete (Eliminar). Son las cuatro operaciones básicas que se pueden realizar sobre datos persistentes.
+
+EN NUESTRA APLICACIÓN:
+
+1. CREATE (Crear):
+   - Función: createEvent() en EventRepository.kt
+   - Pantalla: CreateEventScreen.kt
+   - Acción: Usuario completa formulario y presiona "Guardar"
+   - Resultado: Se crea un nuevo documento en Firestore
+
+2. READ (Leer):
+   - Función: getEventsByUser() en EventRepository.kt
+   - Pantalla: EventListScreen.kt
+   - Acción: Se muestran todos los eventos del usuario
+   - Resultado: Lista actualizada en tiempo real con snapshot listener
+
+3. UPDATE (Actualizar):
+   - Función: updateEvent() en EventRepository.kt
+   - Pantalla: EditEventScreen.kt
+   - Acción: Usuario modifica datos y presiona "Actualizar"
+   - Resultado: Se actualiza el documento en Firestore
+
+4. DELETE (Eliminar):
+   - Función: deleteEvent() en EventRepository.kt
+   - Pantalla: EventListScreen.kt (botón eliminar)
+   - Acción: Usuario confirma eliminación
+   - Resultado: Se elimina el documento de Firestore
+
+TODAS LAS OPERACIONES:
+- Están implementadas en EventRepository.kt
+- Son llamadas desde EventViewModel.kt
+- Se reflejan en la UI automáticamente gracias a la lectura en tiempo real
+
+===========================================
+FIN DEL DOCUMENTO
+===========================================
+
+
