@@ -4,216 +4,162 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.EventPlanner.data.model.Event
 import com.EventPlanner.data.repository.EventRepository
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class EventUiState(
-    val events: List<Event> = emptyList(),
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val isCreating: Boolean = false,
-    val isUpdating: Boolean = false,
-    val isDeleting: Boolean = false
-)
+class EventViewModel : ViewModel() {
 
-class EventViewModel(
-    private val eventRepository: EventRepository = EventRepository()
-) : ViewModel() {
+    private val repository = EventRepository()
 
+    // Estado de la lista de eventos (se actualiza en tiempo real)
+    private val _events = MutableStateFlow<List<Event>>(emptyList())
+    val events: StateFlow<List<Event>> = _events.asStateFlow()
+
+    // Estado de la UI (carga, errores, operaciones)
     private val _uiState = MutableStateFlow(EventUiState())
     val uiState: StateFlow<EventUiState> = _uiState.asStateFlow()
 
-    private val auth = FirebaseAuth.getInstance()
-
     init {
+        // Iniciar la escucha de eventos en tiempo real
         loadEvents()
     }
 
     /**
-     * Carga los eventos del usuario actual en tiempo real
+     * Cargar eventos del usuario actual en tiempo real
      */
     private fun loadEvents() {
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "Usuario no autenticado"
-            )
-            return
-        }
-
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-
-            eventRepository.getEventsByUserId(currentUser.uid)
-                .catch { exception ->
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = exception.message ?: "Error al cargar eventos"
-                    )
-                }
-                .collect { events ->
-                    _uiState.value = _uiState.value.copy(
-                        events = events,
-                        isLoading = false,
-                        errorMessage = null
-                    )
-                }
+            repository.getEventsByUser().collect { eventsList ->
+                _events.update { eventsList }
+            }
         }
     }
 
     /**
-     * Crea un nuevo evento
-     * @param title Título del evento (obligatorio)
-     * @param date Fecha del evento
-     * @param description Descripción del evento (opcional)
+     * Crear un nuevo evento
      */
     fun createEvent(title: String, date: String, description: String) {
-        // Validaciones
         if (title.isBlank()) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "El título es obligatorio"
-            )
+            _uiState.update { it.copy(error = "El título es obligatorio") }
             return
         }
 
-        if (date.isBlank()) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "La fecha es obligatoria"
-            )
-            return
-        }
-
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "Usuario no autenticado"
-            )
-            return
-        }
+        _uiState.update { it.copy(isLoading = true, error = null) }
 
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                isCreating = true,
-                errorMessage = null
-            )
-
-            val newEvent = Event(
-                userId = currentUser.uid,
+            val event = Event(
                 title = title.trim(),
                 date = date.trim(),
                 description = description.trim()
             )
 
-            eventRepository.createEvent(newEvent)
-                .onSuccess {
-                    _uiState.value = _uiState.value.copy(
-                        isCreating = false,
-                        errorMessage = null
+            val result = repository.createEvent(event)
+            if (result.isSuccess) {
+                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = result.exceptionOrNull()?.message ?: "Error al crear el evento"
                     )
                 }
-                .onFailure { exception ->
-                    _uiState.value = _uiState.value.copy(
-                        isCreating = false,
-                        errorMessage = exception.message ?: "Error al crear el evento"
-                    )
-                }
+            }
         }
     }
 
     /**
-     * Actualiza un evento existente
-     * @param eventId ID del evento a actualizar
-     * @param title Nuevo título
-     * @param date Nueva fecha
-     * @param description Nueva descripción
+     * Actualizar un evento existente
      */
     fun updateEvent(eventId: String, title: String, date: String, description: String) {
-        // Validaciones
         if (title.isBlank()) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "El título es obligatorio"
-            )
+            _uiState.update { it.copy(error = "El título es obligatorio") }
             return
         }
 
-        if (date.isBlank()) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "La fecha es obligatoria"
-            )
-            return
-        }
+        _uiState.update { it.copy(isLoading = true, error = null) }
 
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                isUpdating = true,
-                errorMessage = null
-            )
-
-            val updatedEvent = Event(
+            val event = Event(
                 id = eventId,
                 title = title.trim(),
                 date = date.trim(),
                 description = description.trim()
             )
 
-            eventRepository.updateEvent(eventId, updatedEvent)
-                .onSuccess {
-                    _uiState.value = _uiState.value.copy(
-                        isUpdating = false,
-                        errorMessage = null
+            val result = repository.updateEvent(eventId, event)
+            if (result.isSuccess) {
+                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = result.exceptionOrNull()?.message ?: "Error al actualizar el evento"
                     )
                 }
-                .onFailure { exception ->
-                    _uiState.value = _uiState.value.copy(
-                        isUpdating = false,
-                        errorMessage = exception.message ?: "Error al actualizar el evento"
-                    )
-                }
+            }
         }
     }
 
     /**
-     * Elimina un evento
-     * @param eventId ID del evento a eliminar
+     * Eliminar un evento
      */
     fun deleteEvent(eventId: String) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                isDeleting = true,
-                errorMessage = null
-            )
+        _uiState.update { it.copy(isLoading = true, error = null) }
 
-            eventRepository.deleteEvent(eventId)
-                .onSuccess {
-                    _uiState.value = _uiState.value.copy(
-                        isDeleting = false,
-                        errorMessage = null
+        viewModelScope.launch {
+            val result = repository.deleteEvent(eventId)
+            if (result.isFailure) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = result.exceptionOrNull()?.message ?: "Error al eliminar el evento"
                     )
                 }
-                .onFailure { exception ->
-                    _uiState.value = _uiState.value.copy(
-                        isDeleting = false,
-                        errorMessage = exception.message ?: "Error al eliminar el evento"
-                    )
-                }
+            } else {
+                _uiState.update { it.copy(isLoading = false) }
+            }
         }
     }
 
     /**
-     * Limpia el mensaje de error
+     * Obtener un evento por su ID (para editar)
      */
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(errorMessage = null)
+    fun getEventById(eventId: String, onEventLoaded: (Event) -> Unit) {
+        viewModelScope.launch {
+            val result = repository.getEventById(eventId)
+            if (result.isSuccess) {
+                onEventLoaded(result.getOrNull()!!)
+            } else {
+                _uiState.update {
+                    it.copy(error = result.exceptionOrNull()?.message ?: "Error al cargar el evento")
+                }
+            }
+        }
     }
 
     /**
-     * Obtiene el ID del usuario actual
+     * Limpiar el estado de éxito (para resetear después de navegación)
      */
-    fun getCurrentUserId(): String? {
-        return auth.currentUser?.uid
+    fun clearSuccess() {
+        _uiState.update { it.copy(isSuccess = false) }
+    }
+
+    /**
+     * Limpiar errores
+     */
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
     }
 }
+
+/**
+ * Estado de la UI para eventos
+ */
+data class EventUiState(
+    val isLoading: Boolean = false,
+    val isSuccess: Boolean = false,
+    val error: String? = null
+)

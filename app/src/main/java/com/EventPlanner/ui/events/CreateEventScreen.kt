@@ -1,36 +1,39 @@
 package com.EventPlanner.ui.events
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateEventScreen(
-    onNavigateBack: () -> Unit,
-    onEventCreated: () -> Unit,
+    navController: NavController,
     viewModel: EventViewModel = viewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    // Estados locales para los campos del formulario
     var title by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
-    val uiState by viewModel.uiState.collectAsState()
-    var eventCreated by remember { mutableStateOf(false) }
-
-    // Navegar de vuelta cuando se cree el evento exitosamente
-    LaunchedEffect(uiState.isCreating, uiState.errorMessage) {
-        if (!uiState.isCreating && uiState.errorMessage == null && title.isNotBlank() && !eventCreated) {
-            // El evento se creó exitosamente
-            eventCreated = true
-            onEventCreated()
+    // Navegar de vuelta cuando se crea exitosamente
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            viewModel.clearSuccess()
+            navController.popBackStack()
         }
     }
 
@@ -39,11 +42,8 @@ fun CreateEventScreen(
             TopAppBar(
                 title = { Text("Crear Evento") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver"
-                        )
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
                     }
                 }
             )
@@ -56,72 +56,70 @@ fun CreateEventScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Mostrar error si existe
-            uiState.errorMessage?.let { error ->
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = error,
-                        modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer
-                    )
-                }
-            }
-
+            // Campo Título (obligatorio)
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("Título *") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                enabled = !uiState.isCreating
+                isError = title.isBlank() && title.isNotEmpty()
             )
 
+            // Campo Fecha
             OutlinedTextField(
                 value = date,
                 onValueChange = { date = it },
-                label = { Text("Fecha *") },
+                label = { Text("Fecha (ej: 2024-12-25)") },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Ej: 2024-12-25 o 25/12/2024") },
                 singleLine = true,
-                enabled = !uiState.isCreating
+                placeholder = { Text("YYYY-MM-DD") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
             )
 
+            // Campo Descripción (opcional)
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text("Descripción") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 100.dp),
+                    .heightIn(min = 120.dp),
                 maxLines = 5,
-                enabled = !uiState.isCreating
+                minLines = 3
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
+            // Mostrar error si existe
+            if (uiState.error != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = uiState.error ?: "",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+
+            // Botón Guardar
             Button(
                 onClick = {
-                    viewModel.clearError()
                     viewModel.createEvent(title, date, description)
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = !uiState.isCreating && title.isNotBlank() && date.isNotBlank()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isLoading && title.isNotBlank()
             ) {
-                if (uiState.isCreating) {
+                if (uiState.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Guardando...")
                 } else {
                     Text("Guardar Evento")
                 }

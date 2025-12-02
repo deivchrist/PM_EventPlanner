@@ -1,0 +1,142 @@
+EXPLICACIÓN DEL USO RESPONSABLE DE IA
+EventPlanner - Examen Final
+
+===========================================
+¿QUÉ PARTES FUERON ASISTIDAS POR IA?
+===========================================
+
+1. ESTRUCTURA DEL PROYECTO:
+   - La organización de carpetas (MVVM) fue sugerida por IA
+   - La estructura de archivos y separación de responsabilidades
+
+2. IMPLEMENTACIÓN DE REPOSITORY:
+   - EventRepository.kt: La IA ayudó con:
+     * La estructura del código para Firestore
+     * El uso de snapshot listeners para tiempo real
+     * El manejo de coroutines y Flow
+   - AuthRepository.kt: Ya estaba implementado previamente
+
+3. IMPLEMENTACIÓN DE VIEWMODEL:
+   - EventViewModel.kt: La IA asistió con:
+     * La estructura del ViewModel siguiendo MVVM
+     * El manejo de StateFlow para estados observables
+     * La integración con el Repository
+
+4. PANTALLAS DE UI (COMPOSE):
+   - EventListScreen.kt: La IA ayudó con:
+     * La estructura de LazyColumn para listas
+     * El diseño de las tarjetas de eventos
+     * La implementación de diálogos de confirmación
+   
+   - CreateEventScreen.kt y EditEventScreen.kt: La IA asistió con:
+     * La estructura de formularios en Compose
+     * El manejo de estados locales
+     * La validación de campos
+
+5. NAVEGACIÓN:
+   - Navigation.kt: La IA ayudó a actualizar las rutas
+   - Integración de todas las pantallas
+
+6. CORRECCIÓN DE ERRORES:
+   - La IA ayudó a identificar y corregir errores de compilación
+   - Anotaciones @OptIn para APIs experimentales
+   - Corrección de tipos de retorno
+
+===========================================
+¿QUÉ PARTES PROGRAMAMOS NOSOTROS?
+===========================================
+
+1. AUTENTICACIÓN (Deivid):
+   - LoginScreen.kt: Implementación completa
+   - RegisterScreen.kt: Implementación completa
+   - AuthViewModel.kt: Lógica de negocio y validaciones
+   - AuthRepository.kt: Integración con Firebase Auth
+   - Validaciones de campos y manejo de errores
+
+2. MODELO DE DATOS:
+   - Event.kt: Definición de la estructura de datos
+   - Validación de qué campos son obligatorios
+
+3. LÓGICA DE NEGOCIO:
+   - Decisiones sobre qué validaciones implementar
+   - Cómo estructurar los datos en Firestore
+   - Flujo de navegación entre pantallas
+
+4. DISEÑO Y UX:
+   - Decisión de qué información mostrar en cada pantalla
+   - Cómo presentar los eventos al usuario
+   - Diseño de los formularios
+
+5. INTEGRACIÓN:
+   - Conectar todas las piezas del proyecto
+   - Asegurar que el flujo completo funcione
+   - Testing manual de la aplicación
+
+===========================================
+¿CÓMO EVITAR DEPENDER TOTALMENTE DE IA?
+===========================================
+
+1. COMPRENDER EL CÓDIGO:
+   - Antes de usar código generado por IA, lo leemos y entendemos
+   - Explicamos cada parte del código en nuestras propias palabras
+   - No copiamos código sin entender qué hace
+
+2. APRENDER LOS CONCEPTOS:
+   - Estudiamos MVVM antes de implementarlo
+   - Entendemos cómo funciona Firebase y Firestore
+   - Aprendemos Jetpack Compose y sus conceptos fundamentales
+
+3. MODIFICAR Y ADAPTAR:
+   - El código de IA es un punto de partida, no la solución final
+   - Adaptamos el código a nuestras necesidades específicas
+   - Agregamos validaciones y lógica de negocio propia
+
+4. TESTING Y DEBUGGING:
+   - Probamos el código manualmente
+   - Identificamos y corregimos errores nosotros mismos
+   - Entendemos los mensajes de error y cómo solucionarlos
+
+5. DOCUMENTACIÓN:
+   - Escribimos comentarios explicando el código
+   - Documentamos nuestras decisiones de diseño
+   - Creamos archivos de conceptos para reforzar el aprendizaje
+
+6. PRÁCTICA INDEPENDIENTE:
+   - Intentamos implementar funcionalidades sin IA primero
+   - Usamos IA solo cuando estamos realmente bloqueados
+   - Revisamos código de otros proyectos para aprender
+
+7. CONSULTAR RECURSOS OFICIALES:
+   - Documentación oficial de Android
+   - Documentación de Firebase
+   - Ejemplos oficiales de Jetpack Compose
+   - Stack Overflow y comunidades de desarrolladores
+
+8. DESARROLLO GRADUAL:
+   - Empezamos con código simple y lo mejoramos
+   - No dependemos de IA para código básico
+   - Usamos IA para optimizaciones y mejoras avanzadas
+
+===========================================
+CONCLUSIÓN
+===========================================
+
+La IA fue utilizada como una HERRAMIENTA DE ASISTENCIA, no como un reemplazo del aprendizaje. 
+Utilizamos IA para:
+- Acelerar el desarrollo
+- Obtener ejemplos de código
+- Identificar errores
+- Sugerir mejores prácticas
+
+Pero siempre:
+- Entendimos el código antes de usarlo
+- Lo modificamos según nuestras necesidades
+- Aprendimos los conceptos subyacentes
+- Probamos y depuramos manualmente
+
+El objetivo es APRENDER y DESARROLLAR HABILIDADES, no solo completar el proyecto.
+
+===========================================
+FIN DEL DOCUMENTO
+===========================================
+
