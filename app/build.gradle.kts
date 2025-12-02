@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -67,4 +68,5 @@ dependencies {
 
     // Iconos Material (opcional para UI más bonita)
     implementation("androidx.compose.material:material-icons-extended:1.5.4")
+
 }
